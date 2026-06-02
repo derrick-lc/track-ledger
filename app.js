@@ -176,6 +176,7 @@ function init() {
   bindEvents();
   renderMonthPicker();
   renderDatePicker();
+  setView("home");
   render();
 }
 
@@ -403,6 +404,8 @@ function selectThisMonth() {
 function setView(view) {
   els.homeView.classList.toggle("active-view", view === "home");
   els.analysisView.classList.toggle("active-view", view === "analysis");
+  document.body.classList.toggle("home-active", view === "home");
+  document.body.classList.toggle("analysis-active", view === "analysis");
   els.navButtons.forEach((button) => {
     button.classList.toggle("active", button.dataset.view === view);
   });
