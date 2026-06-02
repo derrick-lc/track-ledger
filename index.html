@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f8fafb" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Track!" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <title>我们的小账本</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./app-icon.png" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="month-control">
+          <button id="prevMonth" class="icon-button" aria-label="上个月">‹</button>
+          <button id="monthPickerButton" class="month-button" type="button" aria-haspopup="dialog">
+            <span id="monthPickerLabel">
+              <small>2026</small>
+              <strong>06月</strong>
+            </span>
+            <span class="month-chevron" aria-hidden="true">⌄</span>
+          </button>
+          <input id="monthPicker" type="hidden" />
+          <button id="nextMonth" class="icon-button" aria-label="下个月">›</button>
+        </div>
+      </header>
+
+      <section id="homeView" class="app-view active-view">
+        <section class="summary-grid" aria-label="本月汇总">
+          <article class="summary-card primary">
+            <span>本月总支出</span>
+            <strong id="totalExpense">$0.00</strong>
+            <small id="recordCount">0 笔记录</small>
+          </article>
+          <article class="summary-card">
+            <span>今日支出</span>
+            <strong id="todayExpense">$0.00</strong>
+            <small id="todayDate">今天</small>
+          </article>
+        </section>
+
+        <section class="workspace">
+          <form id="entryForm" class="entry-panel" autocomplete="off">
+            <div class="panel-heading">
+              <h2>记一笔</h2>
+              <div class="type-toggle" role="group" aria-label="收支类型">
+                <input id="expenseType" name="type" type="radio" value="expense" checked />
+                <label for="expenseType">支出</label>
+                <input id="incomeType" name="type" type="radio" value="income" />
+                <label for="incomeType">收入</label>
+              </div>
+            </div>
+
+            <label>
+              日期
+              <button id="datePickerButton" class="date-button" type="button" aria-haspopup="dialog">
+                <span id="datePickerLabel">2026/06/02</span>
+                <span class="calendar-icon" aria-hidden="true"></span>
+              </button>
+              <input id="dateInput" type="hidden" required />
+            </label>
+
+            <label>
+              金额
+              <input id="amountInput" type="number" min="0.01" step="0.01" placeholder="比如 45.80" required />
+            </label>
+
+            <label>
+              分类
+              <select id="categoryInput" data-custom-select required></select>
+            </label>
+
+            <label>
+              备注
+              <input id="noteInput" type="text" placeholder="比如 火锅、Costco、机票" />
+            </label>
+
+            <button class="submit-button" type="submit">添加到账本</button>
+          </form>
+
+          <section class="records-panel">
+            <div class="panel-heading records-heading">
+              <div>
+                <h2>账单明细</h2>
+                <p id="activeFilter">显示本月全部记录</p>
+              </div>
+              <div class="actions">
+                <button id="exportButton" type="button">导出</button>
+                <label class="import-button">
+                  导入
+                  <input id="importInput" type="file" accept="application/json" />
+                </label>
+              </div>
+            </div>
+
+            <div class="filters">
+              <input id="searchInput" type="search" placeholder="搜索备注、分类、日期" />
+              <select id="filterCategory" data-custom-select>
+                <option value="all">全部分类</option>
+              </select>
+            </div>
+
+            <div id="recordsList" class="records-list"></div>
+            <p id="emptyState" class="empty-state">还没有记录，先从左边记一笔。</p>
+          </section>
+        </section>
+      </section>
+
+      <section id="analysisView" class="analytics app-view" aria-label="数据分析">
+        <div class="panel-heading">
+          <p id="analysisSubtitle" hidden>本月支出结构和最高花费</p>
+          <div class="analysis-controls">
+            <div class="analysis-toggle flow-toggle" role="group" aria-label="收支分析">
+              <input id="expenseAnalysis" name="analysisType" type="radio" value="expense" checked />
+              <label for="expenseAnalysis">支出</label>
+              <input id="incomeAnalysis" name="analysisType" type="radio" value="income" />
+              <label for="incomeAnalysis">收入</label>
+            </div>
+            <div class="analysis-toggle" role="group" aria-label="分析周期">
+              <input id="monthlyMode" name="analysisMode" type="radio" value="month" checked />
+              <label for="monthlyMode">月度</label>
+              <input id="yearlyMode" name="analysisMode" type="radio" value="year" />
+              <label for="yearlyMode">年度</label>
+            </div>
+          </div>
+        </div>
+        <div class="finance-grid">
+          <article class="summary-card">
+            <span>本月收入</span>
+            <strong id="totalIncome">$0.00</strong>
+            <small>红包、转账、报销</small>
+          </article>
+          <article class="summary-card">
+            <span>净支出</span>
+            <strong id="netExpense">$0.00</strong>
+            <small>支出 - 收入</small>
+          </article>
+        </div>
+        <div class="insight-grid">
+          <article class="insight-card highlight">
+            <span id="topCategoryLabel">花得最多</span>
+            <strong id="topCategory">暂无</strong>
+            <small id="topCategoryAmount">$0.00</small>
+          </article>
+          <article class="insight-card">
+            <span id="topSingleLabel">最高单笔</span>
+            <strong id="topSingleTitle">暂无</strong>
+            <small id="topSingleAmount">$0.00</small>
+          </article>
+          <article class="insight-card">
+            <span id="topDayLabel">最高一天</span>
+            <strong id="topDay">暂无</strong>
+            <small id="topDayAmount">$0.00</small>
+          </article>
+          <article class="insight-card">
+            <span id="avgDailyLabel">日均支出</span>
+            <strong id="avgDaily">$0.00</strong>
+            <small id="spendDays">0 天有支出</small>
+          </article>
+        </div>
+        <div class="analytics-grid">
+          <section class="chart-panel">
+            <div class="chart-heading">
+              <h3>分类分析</h3>
+            </div>
+            <div class="donut-wrap">
+              <div id="categoryDonut" class="category-donut" aria-label="分类支出环形图">
+                <div class="donut-center">
+                  <span id="donutTotal">$0.00</span>
+                  <small id="donutCaption">本月支出</small>
+                </div>
+              </div>
+            </div>
+            <div id="categoryChart" class="chart-list"></div>
+          </section>
+          <section class="chart-panel">
+            <div class="chart-heading">
+              <h3 id="trendTitle">每日支出</h3>
+              <p id="trendSubtitle">只显示有支出的日期</p>
+            </div>
+            <div id="dailyChart" class="daily-chart"></div>
+          </section>
+        </div>
+      </section>
+
+      <nav class="bottom-nav" aria-label="主导航">
+        <button class="nav-button active" type="button" data-view="home" aria-label="主页">
+          <span aria-hidden="true">⌂</span>
+          <small>记账</small>
+        </button>
+        <button id="openEntryButton" class="add-entry-button" type="button" aria-label="新增记录">
+          <span aria-hidden="true">+</span>
+        </button>
+        <button class="nav-button" type="button" data-view="analysis" aria-label="分析">
+          <span aria-hidden="true"><i></i></span>
+          <small>分析</small>
+        </button>
+      </nav>
+
+      <div id="entrySheet" class="entry-sheet" role="dialog" aria-modal="true" aria-label="记一笔" hidden>
+        <div class="sheet-backdrop" data-close-entry-sheet></div>
+      </div>
+
+      <div id="monthSheet" class="month-sheet" role="dialog" aria-modal="true" aria-label="选择月份" hidden>
+        <div class="sheet-backdrop" data-close-sheet></div>
+        <section class="sheet-panel">
+          <div class="sheet-yearbar">
+            <button id="prevYear" class="sheet-icon" type="button" aria-label="上一年">‹</button>
+            <strong id="sheetYear">2026</strong>
+            <button id="nextYear" class="sheet-icon" type="button" aria-label="下一年">›</button>
+          </div>
+          <div id="monthGrid" class="month-grid"></div>
+          <div class="sheet-actions">
+            <button id="clearMonth" type="button">清除</button>
+            <button id="thisMonth" type="button">本月</button>
+          </div>
+        </section>
+      </div>
+
+      <div id="dateSheet" class="month-sheet" role="dialog" aria-modal="true" aria-label="选择日期" hidden>
+        <div class="sheet-backdrop" data-close-date-sheet></div>
+        <section class="sheet-panel date-panel">
+          <div class="sheet-yearbar">
+            <button id="prevDateMonth" class="sheet-icon" type="button" aria-label="上个月">‹</button>
+            <strong id="dateSheetTitle">2026年06月</strong>
+            <button id="nextDateMonth" class="sheet-icon" type="button" aria-label="下个月">›</button>
+          </div>
+          <div class="weekday-row" aria-hidden="true">
+            <span>日</span>
+            <span>一</span>
+            <span>二</span>
+            <span>三</span>
+            <span>四</span>
+            <span>五</span>
+            <span>六</span>
+          </div>
+          <div id="dateGrid" class="date-grid"></div>
+          <div class="sheet-actions">
+            <button id="clearDate" type="button">清除</button>
+            <button id="todayDateButton" type="button">今天</button>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <template id="recordTemplate">
+      <article class="record-item">
+        <div class="record-icon"></div>
+        <div class="record-main">
+          <div class="record-title-row">
+            <strong class="record-title"></strong>
+            <span class="record-amount"></span>
+          </div>
+          <div class="record-meta"></div>
+        </div>
+        <button class="delete-button" type="button" aria-label="删除">×</button>
+      </article>
+    </template>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

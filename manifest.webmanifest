@@ -1,0 +1,26 @@
+{
+  "name": "Track! 我们的小账本",
+  "short_name": "Track!",
+  "description": "一个可以安装到手机主屏幕的美元记账应用。",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8fafb",
+  "theme_color": "#f8fafb",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./app-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
